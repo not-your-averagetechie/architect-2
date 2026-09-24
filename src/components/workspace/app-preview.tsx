@@ -69,7 +69,7 @@ export function AppPreview({ plan, stage, page, onPage, selectMode, onSelect, de
             <div className={cn("mt-4 grid gap-3", narrow ? "grid-cols-1" : "grid-cols-[1fr_220px]")}>
               <div {...sel(`${table?.name ?? "Data"} table`)} className={cn("overflow-hidden rounded-xl border border-black/[0.06] bg-white", selCls)}>
                 {stage < 2 ? <div className="space-y-2 p-3">{[0, 1, 2, 3, 4].map((i) => <Skel key={i} className="h-7" />)}</div> : (
-                  <div className="overflow-x-auto [scrollbar-width:none]"><table className="w-full whitespace-nowrap text-left text-[12px]">
+                  <div className="no-scrollbar overflow-x-auto"><table className="w-full whitespace-nowrap text-left text-[12px]">
                     <thead className="border-b border-black/[0.06] bg-black/[0.015] text-black/45">
                       <tr>{cols.map((c) => <th key={c} className="px-3 py-2 font-medium capitalize">{c.replace(/_/g, " ")}</th>)}</tr>
                     </thead>
