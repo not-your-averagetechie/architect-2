@@ -11,6 +11,7 @@ import { LogoMark } from "@/components/ui/logo";
 import { LensToggle, type Lens } from "@/components/ui/lens-toggle";
 import { Badge, Kbd } from "@/components/ui/button";
 import { AppPreview } from "@/components/workspace/app-preview";
+import { HistoryDrawer, ShareDialog, PinLayer, type Pin, type Version } from "@/components/workspace/overlays";
 import { makePlan, PLAN_KEY, type Plan } from "@/lib/plan";
 import { generateFiles, type FileNode } from "@/lib/codegen";
 import { projects } from "@/lib/data";
@@ -103,6 +104,10 @@ export function Workspace({ id, initialLens, build, viewerName }: { id: string; 
     }, 900);
   };
 
+  const [historyOpen, setHistoryOpen] = useState(false);
+  const [shareOpen, setShareOpen] = useState(false);
+  const [commentMode, setCommentMode] = useState(false);
+  const [pins, setPins] = useState<Pin[]>([]);
   const [showDiff, setShowDiff] = useState(false);
   const [pane, setPane] = useState<"chat" | "main">("chat");
   if (!plan) return <div className="flex h-dvh items-center justify-center"><Loader2 className="h-5 w-5 animate-spin text-text-3" /></div>;
@@ -129,8 +134,8 @@ export function Workspace({ id, initialLens, build, viewerName }: { id: string; 
             <span className="flex h-7 w-7 items-center justify-center rounded-full border-2 border-elev bg-accent text-[10px] font-semibold text-accent-ink">{initials}</span>
             <span className="flex h-7 w-7 items-center justify-center rounded-full border-2 border-elev bg-code text-[10px] font-semibold text-bg" title="Rahul (developer) is in the code lens">RK</span>
           </div>
-          <button className="hidden h-8 items-center gap-1.5 rounded-lg px-2.5 text-[13px] text-text-2 hover:bg-surface-2 hover:text-text md:inline-flex"><History className="h-3.5 w-3.5" /> History</button>
-          <button className="hidden h-8 items-center gap-1.5 rounded-lg border border-line px-2.5 text-[13px] hover:bg-surface-2 sm:inline-flex"><Share2 className="h-3.5 w-3.5" /> Share</button>
+          <button onClick={() => setHistoryOpen(true)} className="hidden h-8 items-center gap-1.5 rounded-lg px-2.5 text-[13px] text-text-2 hover:bg-surface-2 hover:text-text md:inline-flex"><History className="h-3.5 w-3.5" /> History</button>
+          <button onClick={() => setShareOpen(true)} className="hidden h-8 items-center gap-1.5 rounded-lg border border-line px-2.5 text-[13px] hover:bg-surface-2 sm:inline-flex"><Share2 className="h-3.5 w-3.5" /> Share</button>
           <Link href={`/p/${plan.slug}/deploy`} className={cn("inline-flex h-8 items-center gap-1.5 rounded-lg px-3 text-[13px] font-medium", building ? "pointer-events-none bg-surface-2 text-text-3" : "bg-accent text-accent-ink hover:brightness-110")}><Rocket className="h-3.5 w-3.5" /> <span className="hidden sm:inline">Deploy</span></Link>
         </div>
       </header>
@@ -214,8 +219,11 @@ export function Workspace({ id, initialLens, build, viewerName }: { id: string; 
                 <motion.div key={reloadKey} initial={{ opacity: 0.6 }} animate={{ opacity: 1 }} layout
                   className={cn("mx-auto h-full overflow-hidden rounded-xl border border-line-strong shadow-2xl transition-[max-width] duration-300", device === "desktop" ? "max-w-none" : device === "tablet" ? "max-w-[820px]" : "max-w-[390px]")}
                   onKeyDown={(e) => e.key === "Escape" && setSelectMode(false)}>
+                  <div className="relative h-full">
+                  <PinLayer active={commentMode} pins={pins} onAdd={(p) => setPins((x) => [...x, p])} onExit={() => setCommentMode(false)} />
                   <AppPreview plan={plan} stage={stage} page={page} onPage={setPage} device={device} selectMode={selectMode}
                     onSelect={(label) => { setSelectMode(false); setInput(`Change the ${label}: `); inputRef.current?.focus(); }} />
+                  </div>
                 </motion.div>
               </div>
               <AgentStrip plan={plan} live={stage >= 3} />
@@ -234,6 +242,14 @@ export function Workspace({ id, initialLens, build, viewerName }: { id: string; 
           ))}
         </div>
       </div>
+      <HistoryDrawer open={historyOpen} onClose={() => setHistoryOpen(false)} onRestore={(v) => { setHistoryOpen(false); setMsgs((m) => [...m, { id: `r${Date.now()}`, role: "ai", text: `Restored "${v.label}". Your newer changes are still in history if you want them back.` }]); setReloadKey((k) => k + 1); }}
+        versions={[
+          ...msgs.filter((m) => m.role === "user").slice(1).reverse().map((m, i) => ({ id: `c${i}-${m.id}`, label: m.text.length > 42 ? m.text.slice(0, 42) + "…" : m.text, who: "You", lens: "describe" as const, when: "just now", files: 3 })),
+          { id: "v3", label: build ? "Initial build" : "Add follow-up queue filters", who: "Architect", lens: "describe", when: build ? "just now" : "2h ago", files: 15 },
+          { id: "v2", label: "Scorer agent: confidence threshold", who: "Rahul K.", lens: "code", when: "Yesterday", files: 2 },
+          { id: "v1", label: "Plan approved", who: "You", lens: "describe", when: "2d ago", files: 1 },
+        ] satisfies Version[]} />
+      <ShareDialog open={shareOpen} onClose={() => setShareOpen(false)} slug={plan.slug} onComment={() => { changeLens("describe"); setPane("main"); setCommentMode(true); }} />
     </div>
   );
 }

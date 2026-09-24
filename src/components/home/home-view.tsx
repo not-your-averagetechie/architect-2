@@ -10,6 +10,7 @@ import { Badge, Kbd } from "@/components/ui/button";
 import { projects, templates, suggestions, repos } from "@/lib/data";
 import { setLens as persistLens } from "@/app/actions";
 import { cn } from "@/lib/utils";
+import { openPalette } from "@/components/shell/command-palette";
 
 type Mode = "prompt" | "import" | "template";
 
@@ -43,7 +44,7 @@ export function HomeView({ name, lens: initialLens, goal }: { name: string; lens
       <header className="relative flex h-14 items-center justify-between border-b border-line px-4 sm:px-6">
         <div className="text-[13px] text-text-3">Home</div>
         <div className="flex items-center gap-3">
-          <button className="focus-ring hidden h-8 items-center gap-2 rounded-lg border border-line bg-surface px-2.5 text-[13px] text-text-3 hover:text-text-2 sm:inline-flex">
+          <button onClick={openPalette} className="focus-ring hidden h-8 items-center gap-2 rounded-lg border border-line bg-surface px-2.5 text-[13px] text-text-3 hover:text-text-2 sm:inline-flex">
             <Search className="h-3.5 w-3.5" /> Search or jump to <Kbd>⌘K</Kbd>
           </button>
           <LensToggle value={lens} onChange={changeLens} size="sm" />

@@ -2,7 +2,8 @@
 
 import Link from "next/link";
 import { usePathname } from "next/navigation";
-import { Home, FolderKanban, LayoutTemplate, Bot, Rocket, Plus } from "lucide-react";
+import { Home, FolderKanban, LayoutTemplate, Bot, Rocket, Plus, Search } from "lucide-react";
+import { openPalette } from "@/components/shell/command-palette";
 import { LogoMark } from "@/components/ui/logo";
 import { cn } from "@/lib/utils";
 
@@ -21,7 +22,7 @@ export function MobileTopBar({ name }: { name: string }) {
         <LogoMark className="h-6 w-6" />
         <span className="text-[13px] font-semibold">{name === "Guest" ? "Demo workspace" : `${name.split(" ")[0]}'s workspace`}</span>
       </Link>
-      <Link href="/home" aria-label="New project" className="flex h-8 w-8 items-center justify-center rounded-lg bg-accent text-accent-ink"><Plus className="h-4 w-4" /></Link>
+      <div className="flex items-center gap-1.5"><button onClick={openPalette} aria-label="Search" className="flex h-8 w-8 items-center justify-center rounded-lg border border-line text-text-2"><Search className="h-4 w-4" /></button><Link href="/home" aria-label="New project" className="flex h-8 w-8 items-center justify-center rounded-lg bg-accent text-accent-ink"><Plus className="h-4 w-4" /></Link></div>
     </div>
   );
 }
