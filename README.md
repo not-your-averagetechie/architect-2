@@ -1,36 +1,31 @@
-This is a [Next.js](https://nextjs.org) project bootstrapped with [`create-next-app`](https://nextjs.org/docs/app/api-reference/cli/create-next-app).
+# Architect 2.0
 
-## Getting Started
+**Prompt it. Code it. Ship it.** A concept for the next version of [Architect](https://architect.new): a vibe-coding platform that works for business users *and* developers.
 
-First, run the development server:
+## The idea: one project, two lenses
 
-```bash
-npm run dev
-# or
-yarn dev
-# or
-pnpm dev
-# or
-bun dev
-```
+Today's text-to-app tools pick a side. Lovable and Architect serve people who describe; Cursor and Claude Code serve people who code. Real teams have both, and the handoff between them is where projects die.
 
-Open [http://localhost:3000](http://localhost:3000) with your browser to see the result.
+Architect 2.0 gives every project two lenses on the same source of truth:
 
-You can start editing the page by modifying `app/page.tsx`. The page auto-updates as you edit the file.
+- **Describe lens** - chat, live preview, plain-English agent cards. For the person who owns the problem.
+- **Code lens** - file tree, AI diffs you accept or reject, terminal, env. For the person who owns the system.
 
-This project uses [`next/font`](https://nextjs.org/docs/app/building-your-application/optimizing/fonts) to automatically optimize and load [Geist](https://vercel.com/font), a new font family for Vercel.
+Every change, from a prompt or a keystroke, lands as a commit on the same branch.
 
-## Learn More
+## Key product decisions
 
-To learn more about Next.js, take a look at the following resources:
+1. **Plan review before build.** The prompt becomes an editable spec (pages, agents, data, integrations). You approve it, then Architect builds. This targets the #1 failure of prompt-to-app tools: building the wrong thing.
+2. **Lens is a preference, not a product tier.** Onboarding asks one question and only sets the default.
+3. **GitHub native.** Import any repo; each chat session works on its own branch and ends in a PR.
 
-- [Next.js Documentation](https://nextjs.org/docs) - learn about Next.js features and API.
-- [Learn Next.js](https://nextjs.org/learn) - an interactive Next.js tutorial.
+## Stack
 
-You can check out [the Next.js GitHub repository](https://github.com/vercel/next.js) - your feedback and contributions are welcome!
+Next.js (App Router) · TypeScript · Tailwind v4 · Motion · Auth.js (GitHub + Google) · deployed on Vercel.
 
-## Deploy on Vercel
+## Status
 
-The easiest way to deploy your Next.js app is to use the [Vercel Platform](https://vercel.com/new?utm_medium=default-template&filter=next.js&utm_source=create-next-app&utm_campaign=create-next-app-readme) from the creators of Next.js.
+Work in progress. Milestone 1: design system, auth + onboarding, home.
 
-Check out our [Next.js deployment documentation](https://nextjs.org/docs/app/building-your-application/deploying) for more details.
+---
+Built by Sachin Yadav as a hiring-assignment prototype. Not an official Lyzr product.
