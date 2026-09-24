@@ -69,7 +69,7 @@ export function AppPreview({ plan, stage, page, onPage, selectMode, onSelect, de
             <div className={cn("mt-4 grid gap-3", narrow ? "grid-cols-1" : "grid-cols-[1fr_220px]")}>
               <div {...sel(`${table?.name ?? "Data"} table`)} className={cn("overflow-hidden rounded-xl border border-black/[0.06] bg-white", selCls)}>
                 {stage < 2 ? <div className="space-y-2 p-3">{[0, 1, 2, 3, 4].map((i) => <Skel key={i} className="h-7" />)}</div> : (
-                  <div className="overflow-x-auto"><table className="w-full whitespace-nowrap text-left text-[12px]">
+                  <div className="overflow-x-auto [scrollbar-width:none]"><table className="w-full whitespace-nowrap text-left text-[12px]">
                     <thead className="border-b border-black/[0.06] bg-black/[0.015] text-black/45">
                       <tr>{cols.map((c) => <th key={c} className="px-3 py-2 font-medium capitalize">{c.replace(/_/g, " ")}</th>)}</tr>
                     </thead>
@@ -77,8 +77,8 @@ export function AppPreview({ plan, stage, page, onPage, selectMode, onSelect, de
                       {NAMES.slice(0, 6).map((n, r) => (
                         <tr key={n} className="border-b border-black/[0.04] last:border-0">
                           {cols.map((c, ci) => (
-                            <td key={c} className="px-3 py-2">
-                              {ci === 0 ? <span className="font-medium">{n}</span> : c.match(/status|stage|tags|sentiment/) ? (
+                            <td key={c} className="max-w-[150px] truncate px-3 py-2">
+                              {ci === 0 ? <span className="font-medium">{fakeCell(c, n, r)}</span> : c.match(/status|stage|tags|sentiment/) ? (
                                 <span className={cn("rounded-full px-2 py-0.5 text-[10.5px]", STATUS[r] === "Blocked" ? "bg-red-50 text-red-600" : STATUS[r] === "Done" ? "bg-emerald-50 text-emerald-700" : "bg-black/[0.05] text-black/60")}>{STATUS[r]}</span>
                               ) : <span className="text-black/55">{fakeCell(c, n, r)}</span>}
                             </td>
