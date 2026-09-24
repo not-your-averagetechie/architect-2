@@ -69,7 +69,7 @@ export function AppPreview({ plan, stage, page, onPage, selectMode, onSelect, de
             <div className={cn("mt-4 grid gap-3", narrow ? "grid-cols-1" : "grid-cols-[1fr_220px]")}>
               <div {...sel(`${table?.name ?? "Data"} table`)} className={cn("overflow-hidden rounded-xl border border-black/[0.06] bg-white", selCls)}>
                 {stage < 2 ? <div className="space-y-2 p-3">{[0, 1, 2, 3, 4].map((i) => <Skel key={i} className="h-7" />)}</div> : (
-                  <table className="w-full text-left text-[12px]">
+                  <div className="overflow-x-auto"><table className="w-full whitespace-nowrap text-left text-[12px]">
                     <thead className="border-b border-black/[0.06] bg-black/[0.015] text-black/45">
                       <tr>{cols.map((c) => <th key={c} className="px-3 py-2 font-medium capitalize">{c.replace(/_/g, " ")}</th>)}</tr>
                     </thead>
@@ -80,13 +80,13 @@ export function AppPreview({ plan, stage, page, onPage, selectMode, onSelect, de
                             <td key={c} className="px-3 py-2">
                               {ci === 0 ? <span className="font-medium">{n}</span> : c.match(/status|stage|tags|sentiment/) ? (
                                 <span className={cn("rounded-full px-2 py-0.5 text-[10.5px]", STATUS[r] === "Blocked" ? "bg-red-50 text-red-600" : STATUS[r] === "Done" ? "bg-emerald-50 text-emerald-700" : "bg-black/[0.05] text-black/60")}>{STATUS[r]}</span>
-                              ) : <span className="text-black/55">{c.includes("at") ? `${r + 1}h ago` : c.includes("email") ? `${n.split(" ")[0].toLowerCase()}@acme.co` : `${c.replace(/_/g, " ")} ${r + 1}`}</span>}
+                              ) : <span className="text-black/55">{fakeCell(c, n, r)}</span>}
                             </td>
                           ))}
                         </tr>
                       ))}
                     </tbody>
-                  </table>
+                  </table></div>
                 )}
               </div>
               <div {...sel("Agent activity panel")} className={cn("rounded-xl border border-black/[0.06] bg-white p-3", selCls)}>
@@ -109,4 +109,32 @@ export function AppPreview({ plan, stage, page, onPage, selectMode, onSelect, de
       </main>
     </div>
   );
+}
+
+const FAKE: Record<string, string[]> = {
+  company: ["Northwind", "Halo Labs", "Brightline", "Kestrel Co", "Parallel", "Oakridge"],
+  summary: ["Wants a pilot in Q4", "Pricing concerns", "Asked for a demo", "Ready to sign", "Needs legal review", "Follow up Friday"],
+  next_steps: ["Send proposal", "Book demo", "Share case study", "Loop in CFO", "Send contract", "Check in"],
+  subject: ["Great chatting today", "Your pilot plan", "Next steps", "Quick recap", "Proposal attached", "Checking in"],
+  body: ["Thanks for the time...", "As promised, here...", "Following up on...", "Here's a recap...", "Attached is...", "Wanted to check..."],
+  title: ["Refund request", "Login issue", "Billing question", "Feature request", "Bug report", "Account access"],
+  topic: ["Leave policy", "Benefits", "Payroll", "Remote work", "Travel", "Onboarding"],
+  owner: ["Priya", "Marco", "Aiko", "Dev", "Lena", "Omar"],
+  priority: ["High", "Medium", "Low", "High", "Low", "Medium"],
+  channel: ["Email", "Chat", "Phone", "Email", "Chat", "Web"],
+  market: ["Fed cut in Dec", "BTC > 100k", "Election turnout", "Rain in SF", "GPT-6 by June", "Oil > $90"],
+  odds: ["62%", "48%", "71%", "33%", "55%", "19%"],
+  score: ["92", "78", "64", "88", "41", "73"],
+  amount: ["$12,400", "$8,900", "$24,000", "$3,200", "$15,750", "$6,100"],
+};
+function fakeCell(col: string, name: string, r: number): string {
+  const c = col.toLowerCase();
+  if (FAKE[c]) return FAKE[c][r % 6];
+  if (c.includes("email")) return `${name.split(" ")[0].toLowerCase()}@acme.co`;
+  if (c === "at" || c.endsWith("_at") || c.includes("date") || c.includes("time")) return `${r + 1}h ago`;
+  if (c.endsWith("_id") || c === "id") return `#${1040 + r * 7}`;
+  if (c.includes("name")) return name;
+  const k = Object.keys(FAKE).find((f) => c.includes(f));
+  if (k) return FAKE[k][r % 6];
+  return `${c.replace(/_/g, " ")} ${r + 1}`;
 }
