@@ -21,8 +21,8 @@ export function HomeView({ name, lens: initialLens, goal }: { name: string; lens
   const [importOpen, setImportOpen] = useState(false);
   const ta = useRef<HTMLTextAreaElement>(null);
   const first = name === "Guest" ? "" : `, ${name.split(" ")[0]}`;
-  const hour = new Date().getHours();
-  const greet = hour < 12 ? "Good morning" : hour < 18 ? "Good afternoon" : "Good evening";
+  const [greet, setGreet] = useState("Hello");
+  useEffect(() => { const h = new Date().getHours(); setGreet(h < 12 ? "Good morning" : h < 18 ? "Good afternoon" : "Good evening"); }, []);
 
   useEffect(() => { ta.current?.focus(); }, []);
   useEffect(() => {
