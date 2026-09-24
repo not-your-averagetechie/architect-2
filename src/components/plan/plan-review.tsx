@@ -102,11 +102,11 @@ export function PlanReview({ prompt, lens }: { prompt: string; lens: "describe" 
             </div>
           </motion.div>
         ) : (
-          <motion.div key="plan" initial={{ opacity: 0, y: 10 }} animate={{ opacity: 1, y: 0 }} className="mx-auto grid max-w-6xl gap-8 px-6 py-10 lg:grid-cols-[1fr_320px]">
+          <motion.div key="plan" initial={{ opacity: 0, y: 10 }} animate={{ opacity: 1, y: 0 }} className="mx-auto grid max-w-6xl gap-8 px-4 pb-32 pt-6 sm:px-6 sm:py-10 lg:grid-cols-[1fr_320px] lg:pb-10">
             <main className="min-w-0 space-y-10">
               <section>
                 <div className="flex items-center gap-2 text-xs text-accent"><Sparkles className="h-3.5 w-3.5" /> Draft plan · edit anything before we build</div>
-                <input value={plan.name} onChange={(e) => update((p) => ({ ...p, name: e.target.value }))} className="focus-ring mt-3 w-full rounded-lg bg-transparent text-4xl font-semibold tracking-[-0.03em] outline-none" aria-label="App name" />
+                <input value={plan.name} onChange={(e) => update((p) => ({ ...p, name: e.target.value }))} className="focus-ring mt-3 w-full rounded-lg bg-transparent text-3xl font-semibold tracking-[-0.03em] outline-none sm:text-4xl" aria-label="App name" />
                 <textarea value={plan.summary} onChange={(e) => update((p) => ({ ...p, summary: e.target.value }))} rows={2} className="focus-ring mt-2 w-full resize-none rounded-lg bg-transparent text-[15px] leading-relaxed text-text-2 outline-none" aria-label="Summary" />
                 <div className="mt-2 flex items-center gap-2 text-xs text-text-3">For <Badge>{plan.audience}</Badge></div>
                 <AnimatePresence>{flash && <motion.div initial={{ opacity: 0, y: -4 }} animate={{ opacity: 1, y: 0 }} exit={{ opacity: 0 }} className="mt-4 inline-flex items-center gap-2 rounded-lg border border-accent/30 bg-accent-soft px-3 py-1.5 text-xs text-accent"><Check className="h-3.5 w-3.5" /> Plan updated: &ldquo;{flash}&rdquo;</motion.div>}</AnimatePresence>
@@ -240,6 +240,17 @@ export function PlanReview({ prompt, lens }: { prompt: string; lens: "describe" 
           </motion.div>
         )}
       </AnimatePresence>
+      {ready && <div className="fixed inset-x-0 bottom-0 z-40 border-t border-line bg-elev/90 px-4 pt-3 pb-[calc(12px+env(safe-area-inset-bottom))] backdrop-blur-lg lg:hidden">
+        <div className="mx-auto flex max-w-xl items-center gap-3">
+          <div className="min-w-0 flex-1 text-[11.5px] leading-tight text-text-3">
+            <div className="truncate text-[13px] font-medium text-text">{plan.pages.length} pages · {plan.agents.length} agents</div>
+            ~5 min build
+          </div>
+          <button onClick={approve} disabled={!plan.name.trim() || plan.pages.length === 0} className="focus-ring inline-flex h-11 shrink-0 items-center gap-2 rounded-xl bg-accent px-5 text-sm font-medium text-accent-ink disabled:opacity-40">
+            Approve & build <ArrowRight className="h-4 w-4" />
+          </button>
+        </div>
+      </div>}
     </div>
   );
 }

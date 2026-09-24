@@ -40,6 +40,7 @@ export function Workspace({ id, initialLens, build, viewerName }: { id: string; 
   const [paused, setPaused] = useState(false);
   const [page, setPage] = useState(0);
   const [device, setDevice] = useState<"desktop" | "tablet" | "mobile">("desktop");
+  useEffect(() => { if (window.innerWidth < 768) setDevice("mobile"); }, []);
   const [selectMode, setSelectMode] = useState(false);
   const [input, setInput] = useState("");
   const [msgs, setMsgs] = useState<Msg[]>([]);
@@ -102,18 +103,19 @@ export function Workspace({ id, initialLens, build, viewerName }: { id: string; 
     }, 900);
   };
 
-  if (!plan) return <div className="flex h-screen items-center justify-center"><Loader2 className="h-5 w-5 animate-spin text-text-3" /></div>;
+  const [pane, setPane] = useState<"chat" | "main">("chat");
+  if (!plan) return <div className="flex h-dvh items-center justify-center"><Loader2 className="h-5 w-5 animate-spin text-text-3" /></div>;
 
   const status = building ? (paused ? "Paused" : "Building") : "Preview ready";
   const initials = viewerName.split(" ").map((s) => s[0]).join("").slice(0, 2).toUpperCase();
 
   return (
-    <div className="flex h-screen flex-col overflow-hidden">
+    <div className="flex h-dvh flex-col overflow-hidden">
       {/* Top bar */}
-      <header className="grid h-14 shrink-0 grid-cols-[1fr_auto_1fr] items-center border-b border-line bg-elev px-3">
+      <header className="grid h-14 shrink-0 grid-cols-[1fr_auto_1fr] items-center gap-2 border-b border-line bg-elev px-2 sm:px-3">
         <div className="flex min-w-0 items-center gap-2">
           <Link href="/home" className="rounded-lg p-1.5 text-text-3 hover:bg-surface-2 hover:text-text" aria-label="Home"><ArrowLeft className="h-4 w-4" /></Link>
-          <LogoMark className="h-6 w-6" />
+          <LogoMark className="hidden h-6 w-6 shrink-0 sm:block" />
           <span className="truncate text-[13px] font-medium">{plan.name}</span>
           <button className="hidden items-center gap-1 rounded-md border border-line px-1.5 py-0.5 font-mono text-[11px] text-text-3 hover:text-text-2 sm:inline-flex"><GitBranch className="h-3 w-3" /> {build ? "main" : "feat/outreach-queue"} <ChevronDown className="h-3 w-3" /></button>
           <span className={cn("ml-1 hidden items-center gap-1.5 text-[11px] lg:inline-flex", building ? "text-accent" : "text-ok")}>
@@ -128,7 +130,7 @@ export function Workspace({ id, initialLens, build, viewerName }: { id: string; 
           </div>
           <button className="hidden h-8 items-center gap-1.5 rounded-lg px-2.5 text-[13px] text-text-2 hover:bg-surface-2 hover:text-text md:inline-flex"><History className="h-3.5 w-3.5" /> History</button>
           <button className="hidden h-8 items-center gap-1.5 rounded-lg border border-line px-2.5 text-[13px] hover:bg-surface-2 sm:inline-flex"><Share2 className="h-3.5 w-3.5" /> Share</button>
-          <Link href={`/p/${plan.slug}/deploy`} className={cn("inline-flex h-8 items-center gap-1.5 rounded-lg px-3 text-[13px] font-medium", building ? "pointer-events-none bg-surface-2 text-text-3" : "bg-accent text-accent-ink hover:brightness-110")}><Rocket className="h-3.5 w-3.5" /> Deploy</Link>
+          <Link href={`/p/${plan.slug}/deploy`} className={cn("inline-flex h-8 items-center gap-1.5 rounded-lg px-3 text-[13px] font-medium", building ? "pointer-events-none bg-surface-2 text-text-3" : "bg-accent text-accent-ink hover:brightness-110")}><Rocket className="h-3.5 w-3.5" /> <span className="hidden sm:inline">Deploy</span></Link>
         </div>
       </header>
 
@@ -136,16 +138,16 @@ export function Workspace({ id, initialLens, build, viewerName }: { id: string; 
         {/* LEFT: chat (describe) or files (code) */}
         <AnimatePresence mode="wait" initial={false}>
           {lens === "code" && (
-            <motion.aside key="files" initial={{ width: 0, opacity: 0 }} animate={{ width: 232, opacity: 1 }} exit={{ width: 0, opacity: 0 }} className="shrink-0 overflow-hidden border-r border-line bg-elev">
+            <motion.aside key="files" initial={{ width: 0, opacity: 0 }} animate={{ width: 232, opacity: 1 }} exit={{ width: 0, opacity: 0 }} className="hidden shrink-0 overflow-hidden border-r border-line bg-elev md:block">
               <FileTree files={files} active={activeFile} onOpen={setActiveFile} />
             </motion.aside>
           )}
         </AnimatePresence>
 
-        <section className={cn("flex min-w-0 flex-col border-r border-line bg-bg", lens === "describe" ? "w-[420px] shrink-0" : "order-last w-[340px] shrink-0 border-l border-r-0")}>
+        <section className={cn("min-w-0 flex-col border-line bg-bg md:flex", pane === "chat" ? "flex w-full" : "hidden", lens === "describe" ? "md:w-[420px] md:shrink-0 md:border-r" : "order-last md:w-[340px] md:shrink-0 md:border-l")}>
           <div className="flex h-10 shrink-0 items-center justify-between border-b border-line px-4 text-xs text-text-3">
             <span className="inline-flex items-center gap-1.5">{lens === "describe" ? <><Sparkles className="h-3.5 w-3.5 text-accent" /> Chat</> : <><Bot className="h-3.5 w-3.5 text-code" /> Pair</>}</span>
-            <span>{lens === "describe" ? "Changes apply to preview instantly" : "Proposes diffs, you accept"}</span>
+            <span className="hidden sm:inline">{lens === "describe" ? "Changes apply to preview instantly" : "Proposes diffs, you accept"}</span>
           </div>
           <div className="min-h-0 flex-1 space-y-4 overflow-y-auto px-4 py-4">
             {msgs.map((m) => m.role === "build" ? (
@@ -191,7 +193,7 @@ export function Workspace({ id, initialLens, build, viewerName }: { id: string; 
         </section>
 
         {/* RIGHT: preview (describe) or editor (code) */}
-        <section className="flex min-w-0 flex-1 flex-col bg-[#0d0d0f]">
+        <section className={cn("min-w-0 flex-1 flex-col bg-[#0d0d0f] md:flex", pane === "main" ? "flex" : "hidden")}>
           {lens === "describe" ? (
             <>
               <div className="flex h-10 shrink-0 items-center gap-2 border-b border-line px-3">
@@ -206,7 +208,7 @@ export function Workspace({ id, initialLens, build, viewerName }: { id: string; 
                 <button onClick={() => setReloadKey((k) => k + 1)} className="rounded-lg p-1.5 text-text-3 hover:bg-surface-2 hover:text-text" aria-label="Reload"><RotateCw className="h-3.5 w-3.5" /></button>
                 <button className="rounded-lg p-1.5 text-text-3 hover:bg-surface-2 hover:text-text" aria-label="Open in new tab"><ExternalLink className="h-3.5 w-3.5" /></button>
               </div>
-              <div className="relative min-h-0 flex-1 overflow-auto p-4">
+              <div className="relative min-h-0 flex-1 overflow-auto p-2 sm:p-4">
                 {selectMode && <div className="absolute left-1/2 top-6 z-10 -translate-x-1/2 rounded-full bg-[#7c5cff] px-3 py-1 text-xs text-white shadow-lg">Click anything in the preview to change it · <Kbd className="border-white/30 bg-white/10 text-white">Esc</Kbd></div>}
                 <motion.div key={reloadKey} initial={{ opacity: 0.6 }} animate={{ opacity: 1 }} layout
                   className={cn("mx-auto h-full overflow-hidden rounded-xl border border-line-strong shadow-2xl transition-[max-width] duration-300", device === "desktop" ? "max-w-none" : device === "tablet" ? "max-w-[820px]" : "max-w-[390px]")}
@@ -221,6 +223,15 @@ export function Workspace({ id, initialLens, build, viewerName }: { id: string; 
             <CodePane file={files.find((f) => f.path === activeFile) ?? files[0]} building={building} stepIdx={stepIdx} />
           )}
         </section>
+      </div>
+      <div className="shrink-0 border-t border-line bg-elev px-3 pt-2 pb-[calc(8px+env(safe-area-inset-bottom))] md:hidden">
+        <div className="grid grid-cols-2 rounded-xl border border-line bg-bg p-1 text-[13px]">
+          {([["chat", lens === "describe" ? "Chat" : "Pair"], ["main", lens === "describe" ? "Preview" : "Editor"]] as const).map(([k, l]) => (
+            <button key={k} onClick={() => setPane(k)} className={cn("relative h-9 rounded-lg font-medium", pane === k ? "bg-surface-2 text-text" : "text-text-3")}>
+              {l}{k === "main" && building && <span className="absolute right-3 top-1/2 h-1.5 w-1.5 -translate-y-1/2 animate-pulse rounded-full bg-accent" />}
+            </button>
+          ))}
+        </div>
       </div>
     </div>
   );

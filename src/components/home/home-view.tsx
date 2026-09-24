@@ -40,7 +40,7 @@ export function HomeView({ name, lens: initialLens, goal }: { name: string; lens
   return (
     <div className="relative">
       <div className="pointer-events-none absolute inset-x-0 top-0 h-[420px] glow" />
-      <header className="relative flex h-14 items-center justify-between border-b border-line px-6">
+      <header className="relative flex h-14 items-center justify-between border-b border-line px-4 sm:px-6">
         <div className="text-[13px] text-text-3">Home</div>
         <div className="flex items-center gap-3">
           <button className="focus-ring hidden h-8 items-center gap-2 rounded-lg border border-line bg-surface px-2.5 text-[13px] text-text-3 hover:text-text-2 sm:inline-flex">
