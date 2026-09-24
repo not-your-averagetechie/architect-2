@@ -1,4 +1,2 @@
-import { Soon } from "@/components/shell/soon";
-export default function Page() {
-  return <Soon title="Deployments" body="This screen is being built in the next milestone." />;
-}
+import { DeploymentsView } from "@/components/pages/deployments-view";
+export default function Page() { return <DeploymentsView />; }

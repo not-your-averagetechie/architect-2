@@ -50,8 +50,8 @@ export function DeployView({ id }: { id: string }) {
     const integ = p.integrations.map((i) => i.toUpperCase().replace(/[^A-Z]+/g, "_"));
     setEnvs([
       { key: "DATABASE_URL", value: "postgres://arch:••••@db.architect.app/" + p.slug.replace(/-/g, "_"), secret: true, scope: "All" },
-      { key: "LYZR_API_KEY", value: "lyz_live_8f2c0a91d4e7", secret: true, scope: "All" },
-      ...integ.map((k, i) => ({ key: `${k}_API_KEY`, value: i === integ.length - 1 ? "" : `sk_${k.toLowerCase().slice(0, 4)}_61be20`, secret: true, scope: "Production" as const, missing: i === integ.length - 1 })),
+      { key: "LYZR_API_KEY", value: "demo_lyzr_key_not_real", secret: true, scope: "All" },
+      ...integ.map((k, i) => ({ key: `${k}_API_KEY`, value: i === integ.length - 1 ? "" : `demo_${k.toLowerCase().slice(0, 6)}_key`, secret: true, scope: "Production" as const, missing: i === integ.length - 1 })),
       { key: "NEXT_PUBLIC_APP_NAME", value: p.name, secret: false, scope: "All" },
     ]);
     setHistory([

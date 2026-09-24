@@ -1,4 +1,7 @@
-import { Soon } from "@/components/shell/soon";
-export default function Page() {
-  return <Soon title="Settings" body="This screen is being built in the next milestone." />;
+import { getViewer } from "@/lib/session";
+import { SettingsView } from "@/components/pages/settings-view";
+
+export default async function Page() {
+  const viewer = (await getViewer())!;
+  return <SettingsView viewer={viewer} />;
 }
