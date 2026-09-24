@@ -1,4 +1,7 @@
-import { Soon } from "@/components/shell/soon";
-export default function Page() {
-  return <Soon title="Repo import" body="Repo analysis (stack detection, agent mapping, missing env vars) lands in milestone 4." />;
+import { ImportView } from "@/components/import/import-view";
+
+export default async function ImportPage(props: PageProps<"/p/new/import">) {
+  const sp = await props.searchParams;
+  const repo = typeof sp.repo === "string" && sp.repo ? sp.repo : "acme/support-copilot";
+  return <ImportView repo={repo} />;
 }

@@ -1,4 +1,6 @@
-import { Soon } from "@/components/shell/soon";
-export default function Page() {
-  return <Soon title="Deploy" body="This screen lands in the next milestone." />;
+import { DeployView } from "@/components/deploy/deploy-view";
+
+export default async function DeployPage(props: PageProps<"/p/[id]/deploy">) {
+  const { id } = await props.params;
+  return <DeployView id={id} />;
 }
