@@ -103,6 +103,7 @@ export function Workspace({ id, initialLens, build, viewerName }: { id: string; 
     }, 900);
   };
 
+  const [showDiff, setShowDiff] = useState(false);
   const [pane, setPane] = useState<"chat" | "main">("chat");
   if (!plan) return <div className="flex h-dvh items-center justify-center"><Loader2 className="h-5 w-5 animate-spin text-text-3" /></div>;
 
@@ -162,7 +163,7 @@ export function Workspace({ id, initialLens, build, viewerName }: { id: string; 
                   <div className="mt-2.5 rounded-xl border border-line bg-elev p-3">
                     <div className="space-y-1">{m.changes.map((c) => <div key={c} className="flex items-center gap-2 text-xs text-text-2"><Check className="h-3.5 w-3.5 text-ok" /> {c}</div>)}</div>
                     <div className="mt-2.5 flex items-center gap-2 border-t border-line pt-2.5 text-xs">
-                      <button onClick={() => changeLens("code")} className="inline-flex items-center gap-1 rounded-md px-1.5 py-1 text-code hover:bg-surface-2"><Code2 className="h-3.5 w-3.5" /> View diff · {m.files} files</button>
+                      <button onClick={() => { setShowDiff(true); setPane("main"); changeLens("code"); }} className="inline-flex items-center gap-1 rounded-md px-1.5 py-1 text-code hover:bg-surface-2"><Code2 className="h-3.5 w-3.5" /> View diff · {m.files} files</button>
                       <button className="inline-flex items-center gap-1 rounded-md px-1.5 py-1 text-text-3 hover:bg-surface-2 hover:text-text"><Undo2 className="h-3.5 w-3.5" /> Undo</button>
                     </div>
                   </div>
@@ -220,7 +221,7 @@ export function Workspace({ id, initialLens, build, viewerName }: { id: string; 
               <AgentStrip plan={plan} live={stage >= 3} />
             </>
           ) : (
-            <CodePane file={files.find((f) => f.path === activeFile) ?? files[0]} building={building} stepIdx={stepIdx} />
+            <CodePane key={activeFile} file={files.find((f) => f.path === activeFile) ?? files[0]} building={building} stepIdx={stepIdx} diff={showDiff} onDiff={setShowDiff} />
           )}
         </section>
       </div>
@@ -305,15 +306,50 @@ function FileTree({ files, active, onOpen }: { files: FileNode[]; active: string
   );
 }
 
-function CodePane({ file, building, stepIdx }: { file: FileNode; building: boolean; stepIdx: number }) {
+function CodePane({ file, building, stepIdx, diff, onDiff }: { file: FileNode; building: boolean; stepIdx: number; diff: boolean; onDiff: (v: boolean) => void }) {
   const lines = file.content.split("\n");
+  const [accepted, setAccepted] = useState<null | "kept" | "reverted">(null);
+  const nonEmpty = lines.map((l, i) => [l, i] as const).filter(([l]) => l.trim()).map(([, i]) => i);
+  const start = nonEmpty[Math.floor(nonEmpty.length * 0.45)] ?? 0;
+  const added = new Set(lines.map((_, i) => i).filter((i) => i >= start && i < start + Math.min(4, Math.max(1, lines.length - start - 1))));
+  const ctxFrom = Math.max(0, start - 4), ctxTo = Math.min(lines.length, start + added.size + 4);
   return (
-    <div className="flex min-h-0 flex-1 flex-col">
+    <div className="flex min-h-0 flex-1 flex-col overflow-hidden">
       <div className="flex h-10 shrink-0 items-center gap-2 border-b border-line px-3 font-mono text-[12px] text-text-2">
         <FileCode2 className="h-3.5 w-3.5 text-code" /> {file.path}
         <Badge tone="code" className="ml-2">{file.lang}</Badge>
-        <span className="ml-auto text-[11px] text-text-3" style={{ fontFamily: "var(--font-geist-sans)" }}>Edits here show up in the Describe lens too</span>
+        <div className="ml-auto flex items-center rounded-lg border border-line bg-bg p-0.5 text-[11.5px]" style={{ fontFamily: "var(--font-geist-sans)" }}>
+          <button onClick={() => onDiff(false)} className={cn("rounded-md px-2 py-0.5", !diff ? "bg-surface-2 text-text" : "text-text-3 hover:text-text-2")}>File</button>
+          <button onClick={() => onDiff(true)} className={cn("inline-flex items-center gap-1 rounded-md px-2 py-0.5", diff ? "bg-surface-2 text-text" : "text-text-3 hover:text-text-2")}>Changes <span className="rounded bg-ok/15 px-1 font-mono text-[10px] text-ok">+{added.size}</span></button>
+        </div>
       </div>
+      {diff && (
+        <div className="flex shrink-0 flex-wrap items-center gap-2 border-b border-line bg-elev px-3 py-2 text-[12px]" style={{ fontFamily: "var(--font-geist-sans)" }}>
+          <span className="text-text-2">Last change by <span className="text-text">Architect</span> · from your chat message</span>
+          <span className="ml-auto" />
+          {accepted ? <span className={cn("inline-flex items-center gap-1", accepted === "kept" ? "text-ok" : "text-text-3")}><Check className="h-3.5 w-3.5" /> {accepted === "kept" ? "Kept" : "Reverted"}</span> : <>
+            <button onClick={() => setAccepted("reverted")} className="h-7 rounded-md border border-line px-2.5 text-text-2 hover:bg-surface-2 hover:text-text">Revert</button>
+            <button onClick={() => setAccepted("kept")} className="h-7 rounded-md bg-code px-2.5 font-medium text-bg hover:brightness-110">Keep change</button>
+          </>}
+        </div>
+      )}
+      {diff ? (
+        <pre className="min-h-0 flex-1 overflow-auto py-3 font-mono text-[12.5px] leading-6">
+          <div className="px-4 pb-1 text-[11.5px] text-code/80">@@ -{ctxFrom + 1},{ctxTo - ctxFrom - added.size} +{ctxFrom + 1},{ctxTo - ctxFrom} @@</div>
+          {lines.slice(ctxFrom, ctxTo).map((l, k) => {
+            const i = ctxFrom + k; const add = added.has(i) && accepted !== "reverted";
+            if (added.has(i) && accepted === "reverted") return null;
+            return (
+              <div key={i} className={cn("flex", add ? "bg-ok/[0.08]" : "hover:bg-white/[0.02]")}>
+                <span className="w-12 shrink-0 select-none pr-2 text-right text-text-3">{i + 1}</span>
+                <span className={cn("w-5 shrink-0 select-none text-center", add ? "text-ok" : "text-text-3")}>{add ? "+" : " "}</span>
+                <code className={cn("whitespace-pre", add ? "text-text" : "text-text-3")}>{highlight(l)}</code>
+              </div>
+            );
+          })}
+          <div className="px-4 pt-3 text-[11.5px] text-text-3" style={{ fontFamily: "var(--font-geist-sans)" }}>{lines.length - (ctxTo - ctxFrom)} unchanged lines hidden</div>
+        </pre>
+      ) : (
       <pre className="min-h-0 flex-1 overflow-auto py-3 font-mono text-[12.5px] leading-6">
         {lines.map((l, i) => (
           <div key={i} className="flex hover:bg-white/[0.02]">
@@ -322,9 +358,10 @@ function CodePane({ file, building, stepIdx }: { file: FileNode; building: boole
           </div>
         ))}
       </pre>
-      <div className="h-36 shrink-0 border-t border-line bg-bg">
+      )}
+      <div className="flex h-36 shrink-0 flex-col border-t border-line bg-bg">
         <div className="flex h-8 items-center gap-3 border-b border-line px-3 text-[11px] text-text-3"><span className="inline-flex items-center gap-1.5 text-text-2"><Terminal className="h-3.5 w-3.5" /> Terminal</span><span>Problems 0</span><span>Build logs</span></div>
-        <div className="space-y-0.5 overflow-auto px-3 py-2 font-mono text-[11.5px] text-text-3">
+        <div className="min-h-0 flex-1 space-y-0.5 overflow-auto px-3 py-2 font-mono text-[11.5px] text-text-3">
           <div>$ architect dev</div>
           {STEPS.slice(0, Math.min(stepIdx, STEPS.length)).map((s) => <div key={s.id}><span className="text-ok">✓</span> {s.label.toLowerCase()} <span className="text-text-3">({s.detail[0]})</span></div>)}
           {building ? <div className="text-accent">… {STEPS[stepIdx]?.label.toLowerCase()}</div> : <div className="text-ok">ready on :3000 · hot reload on</div>}
